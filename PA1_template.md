@@ -95,7 +95,9 @@ Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and 
 ```r
 m2 <- melt(subset(f,select=c("steps","interval")),id="interval",na.rm=TRUE)
 d2 <- dcast(m2, interval ~ variable, mean)
-ggplot(d2,aes(interval,steps))+geom_line()+ggtitle("Interval vs Mean steps per interval")
+ggplot(d2,aes(interval,steps))+
+  geom_line()+
+  ggtitle("Interval vs Mean steps per interval")
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
@@ -153,20 +155,6 @@ head(f_imputed[interval==0])
 f_imputed$means <- d2$steps
 # Replace the NAs with the mean for the interval
 f_imputed$steps[is.na(f_imputed$steps)] <- f_imputed$mean[is.na(f_imputed$steps)]
-head(f_imputed[interval==0])
-```
-
-```
-##        steps       date interval    means
-## 1:  1.716981 2012-10-01        0 1.716981
-## 2:  0.000000 2012-10-02        0 1.716981
-## 3:  0.000000 2012-10-03        0 1.716981
-## 4: 47.000000 2012-10-04        0 1.716981
-## 5:  0.000000 2012-10-05        0 1.716981
-## 6:  0.000000 2012-10-06        0 1.716981
-```
-
-```r
 # Drop the helper column
 f_imputed[,means:=NULL]
 ```
@@ -184,6 +172,20 @@ f_imputed[,means:=NULL]
 ## 17566: 0.6415094 2012-11-30     2345
 ## 17567: 0.2264151 2012-11-30     2350
 ## 17568: 1.0754717 2012-11-30     2355
+```
+
+```r
+head(f_imputed[interval==0])
+```
+
+```
+##        steps       date interval
+## 1:  1.716981 2012-10-01        0
+## 2:  0.000000 2012-10-02        0
+## 3:  0.000000 2012-10-03        0
+## 4: 47.000000 2012-10-04        0
+## 5:  0.000000 2012-10-05        0
+## 6:  0.000000 2012-10-06        0
 ```
 
 ### Histogram, Mean, and Median of the Imputed Data

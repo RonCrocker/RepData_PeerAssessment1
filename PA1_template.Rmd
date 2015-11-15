@@ -57,7 +57,9 @@ Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and 
 ```{r}
 m2 <- melt(subset(f,select=c("steps","interval")),id="interval",na.rm=TRUE)
 d2 <- dcast(m2, interval ~ variable, mean)
-ggplot(d2,aes(interval,steps))+geom_line()+ggtitle("Interval vs Mean steps per interval")
+ggplot(d2,aes(interval,steps))+
+  geom_line()+
+  ggtitle("Interval vs Mean steps per interval")
 ```
 
 ### Where's the maximum interval?
@@ -88,9 +90,9 @@ head(f_imputed[interval==0])
 f_imputed$means <- d2$steps
 # Replace the NAs with the mean for the interval
 f_imputed$steps[is.na(f_imputed$steps)] <- f_imputed$mean[is.na(f_imputed$steps)]
-head(f_imputed[interval==0])
 # Drop the helper column
 f_imputed[,means:=NULL]
+head(f_imputed[interval==0])
 ```
 
 ### Histogram, Mean, and Median of the Imputed Data
