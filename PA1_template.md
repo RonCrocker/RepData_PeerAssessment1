@@ -53,11 +53,17 @@ head(d1)
 ## 6 2012-10-06 15420
 ```
 
+```r
+barplot(d1$steps,names.arg=d1$date,main="Barchart of daily total steps")
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+
 ### Make a histogram of the total number of steps taken each day
 We'll take that same result (day-by-day number of steps) and plot that as a histogram
 
 ```r
-hist(d1$steps,60,xlim=c(0,22000))
+hist(d1$steps,60,xlim=c(0,22000),main="Histogram of number of steps (excluding NA values)")
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
@@ -89,7 +95,7 @@ Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and 
 ```r
 m2 <- melt(subset(f,select=c("steps","interval")),id="interval",na.rm=TRUE)
 d2 <- dcast(m2, interval ~ variable, mean)
-ggplot(d2,aes(interval,steps))+geom_line()
+ggplot(d2,aes(interval,steps))+geom_line()+ggtitle("Interval vs Mean steps per interval")
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
@@ -188,7 +194,7 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 ```r
 m_imp <- melt(subset(f_imputed,select=c("steps","date")),id="date")
 d_imp <- dcast(m_imp, date ~ variable, sum, drop=TRUE)
-hist(d_imp$steps,60,xlim=c(0,22000))
+hist(d_imp$steps,60,xlim=c(0,22000),main="Histogram of number of steps (with imputed values)")
 ```
 
 ![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
@@ -247,10 +253,12 @@ head(f_dow)
 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
 
 ```r
-library(lattice)
 m_dow <- melt(f_dow,id.vars=c("interval","dayKind"),measure.vars="steps")
 d_dow <- dcast(m_dow, interval + dayKind ~ variable, mean)
-xyplot(data=d_dow,steps ~ interval | dayKind, type="b", layout=c(1,2))
+ggplot(d_dow,aes(x=interval, y=steps, group=dayKind))+
+  geom_line()+
+  facet_grid(dayKind~.)+
+  ggtitle("Comparison of per-Interval steps based on weekday or weekend")
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
