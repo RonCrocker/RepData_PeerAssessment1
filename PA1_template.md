@@ -13,7 +13,8 @@ and include the number of steps taken in 5 minute intervals each day.
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 library(data.table)
 if (!("activity.csv" %in% list.files())) {
   unzip("activity.zip")
@@ -22,50 +23,121 @@ f <- data.table(read.csv("activity.csv"))
 head(f,1)
 ```
 
+```
+##    steps       date interval
+## 1:    NA 2012-10-01        0
+```
+
 ## What is mean total number of steps taken per day?
 
 For this part of the assignment, you can ignore the missing values in the dataset.
 
 ### Calculate the total number of steps taken per day
 Here, we'll calculate a day-by-day number of steps and plot that as a barchart so we understand what that data looks like.
-```{r}
+
+```r
 library(reshape2)
 library(ggplot2)
 m1 <- melt(subset(f,select=c("steps","date")),id="date")
 d1 <- dcast(m1, date ~ variable, sum, drop=TRUE)
 head(d1)
+```
+
+```
+##         date steps
+## 1 2012-10-01    NA
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420
+```
+
+```r
 barplot(d1$steps,names.arg=d1$date)
 ```
 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+
 ### Make a histogram of the total number of steps taken each day
 We'll take that same result (day-by-day number of steps) and plot that as a histogram
-```{r}
+
+```r
 hist(d1$steps,60,xlim=c(0,22000))
 ```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ### Calculate and report the mean and median of the total number of steps taken per day
 Finally, we see some summary statistics over that data.
 
-```{r}
+
+```r
 mean(d1$steps,na.rm=TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(d1$steps,na.rm=TRUE)
+```
+
+```
+## [1] 10765
 ```
 ## What is the average daily activity pattern?
 
 ### Time Series plot
 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+
+```r
 m2 <- melt(subset(f,select=c("steps","interval")),id="interval",na.rm=TRUE)
 head(m2)
+```
+
+```
+##    interval variable value
+## 1:        0    steps     0
+## 2:        5    steps     0
+## 3:       10    steps     0
+## 4:       15    steps     0
+## 5:       20    steps     0
+## 6:       25    steps     0
+```
+
+```r
 d2 <- dcast(m2, interval ~ variable, mean)
 head(d2)
+```
+
+```
+##   interval     steps
+## 1        0 1.7169811
+## 2        5 0.3396226
+## 3       10 0.1320755
+## 4       15 0.1509434
+## 5       20 0.0754717
+## 6       25 2.0943396
+```
+
+```r
 ggplot(d2,aes(interval,steps))+geom_line()
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
 ### Where's the maximum interval?
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 d2[d2$steps==max(d2$steps),]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
@@ -74,38 +146,107 @@ Note that there are a number of days/intervals where there are missing values (c
 
 ### How many missing values?
 Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
-```{r}
+
+```r
 sum(is.na(f$steps))
+```
+
+```
+## [1] 2304
 ```
 ### Fill in those values for a new *imputed* dataset
 Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-```{r}
+
+```r
 # Replace each with the [arithmetic] mean of the value of the interval as the corresponding value.
 f_imputed <- f
 head(f_imputed[interval==0])
+```
+
+```
+##    steps       date interval
+## 1:    NA 2012-10-01        0
+## 2:     0 2012-10-02        0
+## 3:     0 2012-10-03        0
+## 4:    47 2012-10-04        0
+## 5:     0 2012-10-05        0
+## 6:     0 2012-10-06        0
+```
+
+```r
 # Add the mean for each interval to the table; this just makes replacing the NAs a wee bit easier
 f_imputed$means <- d2$steps
 # Replace the NAs with the mean for the interval
 f_imputed$steps[is.na(f_imputed$steps)] <- f_imputed$mean[is.na(f_imputed$steps)]
 head(f_imputed[interval==0])
+```
+
+```
+##        steps       date interval    means
+## 1:  1.716981 2012-10-01        0 1.716981
+## 2:  0.000000 2012-10-02        0 1.716981
+## 3:  0.000000 2012-10-03        0 1.716981
+## 4: 47.000000 2012-10-04        0 1.716981
+## 5:  0.000000 2012-10-05        0 1.716981
+## 6:  0.000000 2012-10-06        0 1.716981
+```
+
+```r
 # Drop the helper column
 f_imputed[,means:=NULL]
+```
+
+```
+##            steps       date interval
+##     1: 1.7169811 2012-10-01        0
+##     2: 0.3396226 2012-10-01        5
+##     3: 0.1320755 2012-10-01       10
+##     4: 0.1509434 2012-10-01       15
+##     5: 0.0754717 2012-10-01       20
+##    ---                              
+## 17564: 4.6981132 2012-11-30     2335
+## 17565: 3.3018868 2012-11-30     2340
+## 17566: 0.6415094 2012-11-30     2345
+## 17567: 0.2264151 2012-11-30     2350
+## 17568: 1.0754717 2012-11-30     2355
 ```
 
 ### Histogram, Mean, and Median of the Imputed Data
 
 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. 
 
-```{r}
+
+```r
 m_imp <- melt(subset(f_imputed,select=c("steps","date")),id="date")
 d_imp <- dcast(m_imp, date ~ variable, sum, drop=TRUE)
 plot(d_imp$steps)
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
+```r
 hist(d_imp$steps,60,xlim=c(0,22000))
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-2.png) 
+
+```r
 mean(d_imp$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(d_imp$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 #### Do these values differ from the estimates from the first part of the assignment? 
@@ -124,13 +265,11 @@ For this part the `weekdays()` function may be of some help here. Use the datase
 
 ### Weekday vs Weekend dataset construction
 Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-```{r}
-```
+
 
 ### Plot that data!
 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
-```{r}
-```
+
 
 ## *Supplemental Material*
 ### <sup>*</sup>Impute? What's that?
