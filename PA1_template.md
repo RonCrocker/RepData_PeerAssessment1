@@ -53,12 +53,6 @@ head(d1)
 ## 6 2012-10-06 15420
 ```
 
-```r
-barplot(d1$steps,names.arg=d1$date)
-```
-
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
-
 ### Make a histogram of the total number of steps taken each day
 We'll take that same result (day-by-day number of steps) and plot that as a histogram
 
@@ -94,35 +88,7 @@ Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and 
 
 ```r
 m2 <- melt(subset(f,select=c("steps","interval")),id="interval",na.rm=TRUE)
-head(m2)
-```
-
-```
-##    interval variable value
-## 1:        0    steps     0
-## 2:        5    steps     0
-## 3:       10    steps     0
-## 4:       15    steps     0
-## 5:       20    steps     0
-## 6:       25    steps     0
-```
-
-```r
 d2 <- dcast(m2, interval ~ variable, mean)
-head(d2)
-```
-
-```
-##   interval     steps
-## 1        0 1.7169811
-## 2        5 0.3396226
-## 3       10 0.1320755
-## 4       15 0.1509434
-## 5       20 0.0754717
-## 6       25 2.0943396
-```
-
-```r
 ggplot(d2,aes(interval,steps))+geom_line()
 ```
 
@@ -222,16 +188,10 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 ```r
 m_imp <- melt(subset(f_imputed,select=c("steps","date")),id="date")
 d_imp <- dcast(m_imp, date ~ variable, sum, drop=TRUE)
-plot(d_imp$steps)
-```
-
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
-
-```r
 hist(d_imp$steps,60,xlim=c(0,22000))
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-2.png) 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
 
 ```r
 mean(d_imp$steps)
@@ -253,8 +213,9 @@ median(d_imp$steps)
 <dl>
 <dt><strong>Histogram</strong></dt>
 <dd>The histogram <strong>did</strong> change; this can be explained by the number of elements with no data changing to 0, and those elements moved to other places in the chart (specifically, they moved to the mean point). The result in the chart is that the first bucket decreased and those elements moved to the mean element bar and shifted that bar upwards.</dd>
+
 <dt><strong>Mean</strong></dt>
-<dd>The mean <strong>did NOT</strong> change; this was a little surprising, but it is easily explained by the fact that the NA elements only appeared for full days.</dd>
+<dd>The mean <strong>did NOT</strong> change; this was a little surprising, but it is easily explained by the fact that the NA elements only appeared for full days. If we look at the mean of the intervals, we should expect that those mean values do NOT change with the current imputing method.</dd>
 
 <dt><strong>Median</strong></dt>
 <dd>The median <strong>did</strong> change; this was less surprising, as adding values into the mix will shift the balance around in the distribution.</dd>
@@ -266,10 +227,33 @@ For this part the `weekdays()` function may be of some help here. Use the datase
 ### Weekday vs Weekend dataset construction
 Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
+```r
+f_dow <- f_imputed
+f_dow$dayKind <- factor(weekdays(as.Date(f_dow$date)) %in% c("Monday","Tuesday","Wednesday","Thursday","Friday"),levels=c(TRUE,FALSE),labels=c("weekday","weekend"))
+head(f_dow)
+```
+
+```
+##        steps       date interval dayKind
+## 1: 1.7169811 2012-10-01        0 weekday
+## 2: 0.3396226 2012-10-01        5 weekday
+## 3: 0.1320755 2012-10-01       10 weekday
+## 4: 0.1509434 2012-10-01       15 weekday
+## 5: 0.0754717 2012-10-01       20 weekday
+## 6: 2.0943396 2012-10-01       25 weekday
+```
 
 ### Plot that data!
 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
 
+```r
+library(lattice)
+m_dow <- melt(f_dow,id.vars=c("interval","dayKind"),measure.vars="steps")
+d_dow <- dcast(m_dow, interval + dayKind ~ variable, mean)
+xyplot(data=d_dow,steps ~ interval | dayKind, type="b", layout=c(1,2))
+```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
 
 ## *Supplemental Material*
 ### <sup>*</sup>Impute? What's that?
@@ -303,10 +287,10 @@ ddply(df, ~ group, transform, traits = impute(traits, median))
 ddply(df, ~ group, transform, traits = impute(traits, min))
 ```
 
-*[**Comment to reviewers:** Above I used the generic markdown "format an R program" instead of the knitr-flavored "format and run an R program" for the above since these are comments only. Below I'll use the more familiar format to use that function to perform the requested analyses. --rtc]*
+*[**Comment to reviewers:** Above I use the generic markdown "format an R program" instead of the knitr-flavored "format and run an R program" for the above since these are comments only. I use the more familiar format of this course (the one with the `{r}` to have `knitr` evaluate the R code) elsewhere in this document. --rtc]*
 
 #### Impact on data loading
-For ```impute()` to work as intended, the data frame should retain it's NA values. That implies that when the data frame is loaded (e.g., via `read.csv()`), the NA values should not be removed (i.e., `na.rm=FALSE`). Care should be taken in this area, as it may not be the norm.
+For `impute()` to work as intended, the data frame should retain it's NA values. That implies that when the data frame is loaded (e.g., via `read.csv()`), the NA values should not be removed (i.e., `na.rm=FALSE`). Care should be taken in this area, as it may not be the norm.
 
 [1]: http://www.oxfordreference.com/view/10.1093/acref/9780195392883.001.0001/acref-9780195392883 "New Oxford American Dictionary
 Copyright © 2010, 2013 by Oxford University Press, Inc. All rights reserved."
